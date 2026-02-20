@@ -1,0 +1,45 @@
+{
+  "name": "openclaw-payment-skill",
+  "version": "0.2.0",
+  "description": "OpenClaw agentic payment skill with x402 and AP2 protocol support",
+  "main": "dist/index.js",
+  "bin": {
+    "openclaw-payment": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "cli": "node dist/cli.js",
+    "web": "node dist/web-api.js",
+    "dev": "ts-node src/index.ts",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@coinbase/x402": "^2.1.0",
+    "viem": "^2.28.0",
+    "stripe": "^17.0.0",
+    "@paypal/paypal-server-sdk": "^2.0.0",
+    "@aws-sdk/client-kms": "^3.750.0",
+    "better-sqlite3": "^11.8.0",
+    "yaml": "^2.7.0",
+    "express": "^5.1.0",
+    "commander": "^13.1.0",
+    "winston": "^3.17.0",
+    "zod": "^3.24.0",
+    "uuid": "^11.1.0",
+    "chalk": "^5.4.0",
+    "readline-sync": "^1.4.10"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.14",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.0.0",
+    "@types/readline-sync": "^1.4.8",
+    "@types/uuid": "^10.0.0",
+    "typescript": "^5.7.0",
+    "ts-node": "^10.9.0",
+    "jest": "^30.0.0",
+    "@types/jest": "^30.0.0",
+    "ts-jest": "^30.0.0"
+  }
+}
