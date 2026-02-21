@@ -1,0 +1,36 @@
+# Rust artifacts
+target/
+*/target/
+
+#Python VEnv
+.venv/
+*/.venv/
+venv/
+*/venv/
+
+# Embedded Git repositories
+.git/
+*/.git/
+
+log/
+*pwd
+*seed
+
+# Visual Studio Code
+.vscode/
+*/.vscode/
+.run/
+*/.run/
+
+# JetBrains IDEs
+.idea/
+*/.idea/
+.run/
+*/.run/
+
+# Editor backup files
+*~
+
+# macOS
+.DS_Store
+
