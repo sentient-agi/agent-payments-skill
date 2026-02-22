@@ -2,11 +2,23 @@
 target/
 */target/
 
-#Python VEnv
+# Python VEnv
 .venv/
 */.venv/
 venv/
 */venv/
+
+# Node/NPM modules
+node_modules/
+*/node_modules/
+
+# TypeScript to ECMAScript compiled modules
+dist/
+*/dist/
+
+# Agents Setup
+.agents/
+*/.agents/
 
 # Embedded Git repositories
 .git/
