@@ -1,9 +1,25 @@
 # Agent Payments Skill Configuration
+
+# Skill Metadata
 skill:
   name: agent-payments
-  version: 0.2.0
+  version: 0.3.0
 
-# SQLite Configuration
+# ── Dry Run Mode ────────────────────────────────────────────────────
+# When enabled, no real payments are made. Gateways return stub responses,
+# AWS KMS is bypassed, and a local AES-256 key is used for encryption.
+dry_run:
+  enabled: false
+  # Env var holding the 256-bit hex encryption key (64 hex chars).
+  # If the var is empty or missing on first run, a key is auto-generated
+  # and written to .env in the project root.
+  encryption_key_env: "DRYRUN_ENCRYPTION_KEY"
+  # Controls stub behaviour: "success" | "failure" | "random"
+  stub_mode: "success"
+  # Simulated network latency in ms (0 to skip)
+  simulated_latency_ms: 500
+
+# SQLite Database Configuration
 database:
   path: "./data/payments.db"
   wal_mode: true
