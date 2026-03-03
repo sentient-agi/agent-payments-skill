@@ -63,6 +63,12 @@ function resolveChain(networkName: string): { chain: Chain; rpcUrl: string } {
   return { chain, rpcUrl: netConfig.rpc_url };
 }
 
+// ─── Dry-run check ──────────────────────────────────────────────────────────
+
+function isDryRun(): boolean {
+  return getConfig().dry_run.enabled;
+}
+
 // ─── Ethereum Transaction Producer ──────────────────────────────────────────
 
 export interface EthereumTxResult {
@@ -85,6 +91,14 @@ export async function sendEth(
 ): Promise<EthereumTxResult> {
   const logger = getLogger();
   logger.info("web3: Preparing ETH transfer", { to, amount, network: networkName });
+
+  // In dry-run mode, decrypt the key locally then use the stub
+  if (isDryRun()) {
+    const { stubSendEth } = await import("../../dry-run/stubs");
+    const privateKey = await retrieveAndDecrypt(walletKeyAlias);
+    const account = privateKeyToAccount(privateKey as `0x${string}`);
+    return stubSendEth(account.address, to, amount, networkName);
+  }
 
   const privateKey = await retrieveAndDecrypt(walletKeyAlias);
   const account = privateKeyToAccount(privateKey as `0x${string}`);
@@ -140,6 +154,14 @@ export async function sendErc20(
     token: tokenSymbol,
     network: networkName,
   });
+
+  // In dry-run mode, decrypt the key locally then use the stub
+  if (isDryRun()) {
+    const { stubSendErc20 } = await import("../../dry-run/stubs");
+    const privateKey = await retrieveAndDecrypt(walletKeyAlias);
+    const account = privateKeyToAccount(privateKey as `0x${string}`);
+    return stubSendErc20(account.address, to, amount, tokenSymbol, networkName);
+  }
 
   const privateKey = await retrieveAndDecrypt(walletKeyAlias);
   const account = privateKeyToAccount(privateKey as `0x${string}`);
@@ -199,6 +221,11 @@ export async function waitForConfirmation(
   txHash: Hash,
   networkName: string = "ethereum"
 ): Promise<{ status: "success" | "reverted"; blockNumber: bigint }> {
+  if (isDryRun()) {
+    const { stubWaitForConfirmation } = await import("../../dry-run/stubs");
+    return stubWaitForConfirmation(txHash, networkName);
+  }
+
   const { chain, rpcUrl } = resolveChain(networkName);
 
   const publicClient = createPublicClient({
