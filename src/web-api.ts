@@ -1,5 +1,6 @@
 // Web API (Express)
 //
+import "dotenv/config";
 import express from "express";
 import { bootstrap, executePayment, PaymentExecutionResult } from "./index";
 import { loadConfig, getConfig } from "./config/loader";
@@ -45,6 +46,8 @@ app.get("/api/v1/health", (_req, res) => {
     status: "ok",
     skill: config.skill.name,
     version: config.skill.version,
+    dryRun: config.dry_run.enabled,
+    stubMode: config.dry_run.enabled ? config.dry_run.stub_mode : undefined,
   });
 });
 
