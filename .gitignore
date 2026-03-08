@@ -16,6 +16,18 @@ node_modules/
 dist/
 */dist/
 
+# Runtime data
+data/
+logs/
+*.db
+*.db-wal
+*.db-shm
+
+# Secrets
+.env
+.env.local
+.env.production
+
 # Agents Setup
 .agents/
 */.agents/
