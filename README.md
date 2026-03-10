@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/png/banner.png" style="max-height:50%; height:50%; width:auto;" />
+  <img height="500px" src="docs/png/banner.png" />
 </p>
 
 # 🤖💵 Agentic Payment Service for Open Agent Skills Ecosystem.
