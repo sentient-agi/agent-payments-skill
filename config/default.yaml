@@ -59,16 +59,48 @@ web2:
   stripe:
     enabled: true
     api_version: "2025-01-27.acacia"
+
   paypal:
     enabled: true
     environment: "sandbox"   # or "live"
     base_url: "https://api-m.sandbox.paypal.com"
+
   visa:
     enabled: true
     base_url: "https://sandbox.api.visa.com"
+
   mastercard:
     enabled: true
     base_url: "https://sandbox.api.mastercard.com"
+
+  googlepay:
+    enabled: true
+    environment: "TEST"   # "TEST" or "PRODUCTION"
+    base_url: "https://pay.google.com/gp/p"
+    allowed_card_networks:
+      - "AMEX"
+      - "DISCOVER"
+      - "JCB"
+      - "MASTERCARD"
+      - "VISA"
+    allowed_auth_methods:
+      - "PAN_ONLY"
+      - "CRYPTOGRAM_3DS"
+
+  applepay:
+    enabled: true
+    base_url: "https://apple-pay-gateway.apple.com/paymentservices"
+    domain: "your-domain.example.com"   # Must be verified with Apple
+    display_name: "OpenClaw Payments"
+    supported_networks:
+      - "visa"
+      - "masterCard"
+      - "amex"
+      - "discover"
+    merchant_capabilities:
+      - "supports3DS"
+      - "supportsCredit"
+      - "supportsDebit"
 
 # AWS KMS Configuration (access tokens via env vars only)
 kms:
@@ -100,9 +132,9 @@ policy:
     time_restrictions:
       enabled: false
       allowed_hours:
-        start: 8    # 08:00 UTC
-        end: 22     # 22:00 UTC
-      allowed_days: [1, 2, 3, 4, 5]  # Mon-Fri
+        start: 8   # 08:00 UTC
+        end: 22    # 22:00 UTC
+      allowed_days: [1, 2, 3, 4, 5]   # Mon-Fri
 
     # Address lists
     whitelist:
@@ -127,7 +159,7 @@ policy:
 
 # Logging & Audit
 logging:
-  level: "info"             # debug | info | warn | error
+  level: "info"   # debug | info | warn | error
   stdout: true
   stderr_errors: true
   file:
@@ -136,8 +168,8 @@ logging:
     max_size_mb: 50
     max_files: 10
   audit:
-    sqlite: true            # Write audit records to SQLite
-    verbose: true           # Include request/response payloads
+    sqlite: true    # Write audit records to SQLite
+    verbose: true   # Include request/response payloads
 
 # Web API Configuration
 web_api:
