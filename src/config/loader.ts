@@ -84,6 +84,21 @@ const ConfigSchema = z.object({
     }),
     visa: z.object({ enabled: z.boolean(), base_url: z.string() }),
     mastercard: z.object({ enabled: z.boolean(), base_url: z.string() }),
+    googlepay: z.object({
+      enabled: z.boolean(),
+      environment: z.enum(["TEST", "PRODUCTION"]).default("TEST"),
+      base_url: z.string(),
+      allowed_card_networks: z.array(z.string()).default(["AMEX", "DISCOVER", "JCB", "MASTERCARD", "VISA"]),
+      allowed_auth_methods: z.array(z.string()).default(["PAN_ONLY", "CRYPTOGRAM_3DS"]),
+    }),
+    applepay: z.object({
+      enabled: z.boolean(),
+      base_url: z.string(),
+      domain: z.string(),
+      display_name: z.string().default("OpenClaw Payments"),
+      supported_networks: z.array(z.string()).default(["visa", "masterCard", "amex", "discover"]),
+      merchant_capabilities: z.array(z.string()).default(["supports3DS", "supportsCredit", "supportsDebit"]),
+    }),
   }),
   kms: z.object({
     enabled: z.boolean(),
