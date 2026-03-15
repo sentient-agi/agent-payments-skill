@@ -4,12 +4,13 @@ description: >
   Dual-protocol agentic payment service supporting x402 (HTTP 402 onchain
   stablecoin payments) and AP2 (Google's Agent Payments Protocol with
   cryptographic mandates). Routes AI payment intents to web3 (Ethereum, Base,
-  Polygon via Viem) or web2 (Stripe, PayPal, Visa Direct, Mastercard Send)
-  gateways. Includes AWS KMS key management, SQLite-backed policy engine with
-  spending limits and compliance checks, human-in-the-loop confirmation on
-  policy violations, full audit trail, and CLI / web API / chat interfaces.
-  Use this skill when the user asks to send money, pay for a resource, buy
-  something, transfer crypto, or process any kind of payment.
+  Polygon via Viem) or web2 (Stripe, PayPal, Visa Direct, Mastercard Send,
+  Google Pay, Apple Pay) gateways. Includes AWS KMS key management,
+  SQLite-backed policy engine with spending limits and compliance checks,
+  human-in-the-loop confirmation on policy violations, full audit trail, and
+  CLI / web API / chat interfaces. Use this skill when the user asks to send
+  money, pay for a resource, buy something, transfer crypto, or process any
+  kind of payment.
 license: Apache 2.0
 allowed-tools: exec web_fetch read write
 requires:
@@ -28,8 +29,8 @@ os:
   - win32
 metadata:
   author: Sentient AGI Lab's
-  version: "0.2.0"
-  tags: "payments x402 ap2 web3 web2 blockchain compliance"
+  version: "0.3.0"
+  tags: "payments x402 ap2 web3 web2 blockchain compliance googlepay applepay"
 ---
 
 # Agentic Payment Skill
@@ -43,8 +44,9 @@ can parse, validate, and execute it.
 Activate this skill when the user:
 - Asks to **send money**, **pay**, **transfer funds**, or **buy something**
 - Mentions **x402**, **HTTP 402**, **stablecoin**, **USDC**, **onchain payment**
-- Mentions **Stripe**, **PayPal**, **Visa**, **Mastercard**, or any card payment
+- Mentions **Stripe**, **PayPal**, **Visa**, **Mastercard**, **Google Pay**, **Apple Pay**, or any card/wallet payment
 - Asks an agent to **purchase on their behalf** or **delegate a payment**
+- Mentions **GPay**, **Apple Pay**, **digital wallet**, or **mobile wallet** payment
 - Needs to check a **transaction status**, **audit log**, or **spending summary**
 
 ## Protocol Detection
@@ -57,6 +59,8 @@ Examine the payment context to decide the protocol:
 | User mentions x402 / stablecoin / USDC / onchain / crypto | **x402** |
 | Payment involves a mandate, delegated purchase, or merchant checkout | **AP2** |
 | Traditional card/gateway payment (Visa, MC, Stripe, PayPal) via agent | **AP2** |
+| User mentions Google Pay / GPay / digital wallet checkout | **AP2** (gateway: `googlepay`) |
+| User mentions Apple Pay / mobile wallet on iOS/Safari | **AP2** (gateway: `applepay`) |
 
 ## Payment Intent JSON
 
@@ -71,7 +75,7 @@ from your message automatically):
   "currency": "USDC | ETH | USD | EUR",
   "recipient": "<blockchain address or merchant ID>",
   "network": "ethereum | base | polygon | web2 | null",
-  "gateway": "viem | visa | mastercard | paypal | stripe | null",
+  "gateway": "viem | visa | mastercard | paypal | stripe | googlepay | applepay | null",
   "description": "<human-readable description>",
   "metadata": {}
 }
@@ -88,6 +92,49 @@ from your message automatically):
 - `gateway` — optional. Omit or `null` for auto-detection (crypto → viem, fiat → stripe).
 - `description` — optional. Short human-readable note.
 - `metadata` — optional. Arbitrary key-value pairs for gateway-specific data.
+  - For **Google Pay**: include `"paymentToken"` (required, from client-side Google Pay JS API) and optionally `"countryCode"` (default `"US"`).
+  - For **Apple Pay**: include `"paymentToken"` (required, from client-side Apple Pay JS API) and optionally `"validationURL"` (for merchant session validation).
+
+### Google Pay Example
+
+```json
+{
+  "protocol": "ap2",
+  "action": "pay",
+  "amount": "35.00",
+  "currency": "USD",
+  "recipient": "merchant-gpay-001",
+  "gateway": "googlepay",
+  "description": "Purchase via Google Pay",
+  "metadata": {
+    "paymentToken": "<encrypted-token-from-google-pay-js>",
+    "countryCode": "US"
+  }
+}
+```
+
+### Apple Pay Example
+
+```json
+{
+  "protocol": "ap2",
+  "action": "pay",
+  "amount": "59.99",
+  "currency": "USD",
+  "recipient": "merchant-applepay-001",
+  "gateway": "applepay",
+  "description": "Checkout via Apple Pay",
+  "metadata": {
+    "paymentToken": "<encrypted-token-from-apple-pay-js>",
+    "validationURL": "https://apple-pay-gateway-cert.apple.com/paymentservices/startSession"
+  }
+}
+```
+
+> **Important:** The `paymentToken` for both Google Pay and Apple Pay is produced
+> by the respective client-side JS API. The agent never generates these tokens —
+> they must be provided by the client application. If the token is not available,
+> inform the user that client-side integration is required.
 
 ## Policy Compliance
 
@@ -129,6 +176,8 @@ To query the audit log, output:
 The skill also provides a CLI. Key commands:
 
 - `agent-payments pay --protocol x402 --amount 10 --currency USDC --to 0x...`
+- `agent-payments pay --protocol ap2 --amount 35 --currency USD --to merchant-gpay --gateway googlepay`
+- `agent-payments pay --protocol ap2 --amount 59.99 --currency USD --to merchant-applepay --gateway applepay`
 - `agent-payments keys store --alias default_wallet --type web3_private_key --value "0x..."`
 - `agent-payments keys list`
 - `agent-payments tx <txId>`
@@ -151,7 +200,8 @@ When the user asks for a **demo**, **test**, or **dry run**, or when you are
 uncertain whether real credentials are configured, suggest dry-run mode.
 
 In dry-run mode:
-- **No real payments** are made — all gateways return simulated stub responses.
+- **No real payments** are made — all gateways (Stripe, PayPal, Visa, Mastercard,
+  Google Pay, Apple Pay, and Viem) return simulated stub responses.
 - **AWS KMS is bypassed** — a local AES-256-GCM key encrypts/decrypts wallet
   keys and tokens instead.
 - **A real Viem wallet key is generated** and stored encrypted in SQLite, but
