@@ -20,6 +20,7 @@
   - [System Diagram](#system-diagram)
   - [Directory Structure](#directory-structure)
   - [Data Flow](#data-flow)
+- [Quick Start with Docker and Docker Compose](#quick-start)
 - [Supported Protocols](#supported-protocols)
   - [x402 Protocol](#x402-protocol)
   - [AP2 Protocol (Agent Payments Protocol)](#ap2-protocol-agent-payments-protocol)
@@ -77,6 +78,8 @@
   - [Example 3 — AI Chat-Driven Payment](#example-3--ai-chat-driven-payment)
   - [Example 4 — Policy Violation & Human Confirmation](#example-4--policy-violation--human-confirmation)
   - [Example 5 — Key Management](#example-5--key-management)
+  - [Example 6 — Google Pay Payment via Web API](example-6--google-pay-payment-via-web-api)
+  - [Example 7 — Apple Pay Payment via Web API](#example-7--apple-pay-payment-via-web-api)
 - [Development](#development)
   - [Build](#build)
   - [Run Tests](#run-tests)
@@ -274,6 +277,76 @@ User/Agent input
                     │  + Audit Log        │
                     └─────────────────────┘
 ```
+
+---
+
+## Quick Start
+
+**A quick start guide with Docker and Docker Compose.**
+
+### Usage
+
+**Quick start (dry-run, no credentials needed):**
+
+```bash
+# Build and start both services
+DRY_RUN=true docker compose up --build -d
+
+# Check the payment API health
+curl http://localhost:3402/api/v1/health
+
+# Run the demo via the CLI helper
+DRY_RUN=true docker compose run --rm cli demo
+
+# View audit log
+DRY_RUN=true docker compose run --rm cli audit --limit 20
+
+# Store a key via CLI
+DRY_RUN=true docker compose run --rm cli keys list
+```
+
+**Production (with real credentials):**
+
+```bash
+# Create a .env file with your secrets
+cat > .env <<EOF
+AWS_ACCESS_KEY_ID=AKIA...
+AWS_SECRET_ACCESS_KEY=...
+AWS_KMS_KEY_ID=arn:aws:kms:us-east-1:123456789012:key/...
+LLM_PROVIDER=anthropic
+LLM_API_KEY=sk-ant-...
+OPENCLAW_GATEWAY_TOKEN=your-gateway-token
+EOF
+
+# Start
+docker compose up --build -d
+
+# Tail logs
+docker compose logs -f openclaw-payments
+
+# Stop
+docker compose down
+```
+
+**Pair OpenClaw with a messaging channel (e.g. Telegram):**
+
+```bash
+# Run the OpenClaw CLI inside the running container
+docker compose exec openclaw-payments openclaw pairing approve telegram
+```
+
+---
+
+### What this gives you
+
+| Container | Service | Port | Description |
+|---|---|---|---|
+| `openclaw-payments` | Payment Skill Web API | `3402` | REST API for payments, parsing, confirmations, audit |
+| `openclaw-payments` | OpenClaw Gateway | `18789` | Agent gateway (Telegram, Slack, WhatsApp, etc.) |
+| `openclaw-payments` | OpenClaw Bridge | `18790` | Internal bridge for multi-channel routing |
+| `openclaw-payments-cli` | CLI (on-demand) | — | Runs `openclaw-payment` CLI commands against the shared SQLite DB |
+
+Both services share the same SQLite database and encrypted key store through Docker volumes [[1]](https://til.simonwillison.net/llms/openclaw-docker). The payment skill is auto-registered as an OpenClaw skill via the symlink into `~/.openclaw/skills/` [[2]](https://docs.openclaw.ai/tools/skills), so the agent discovers it at startup through the standard skill loading mechanism.
 
 ---
 
@@ -970,7 +1043,7 @@ openclaw-payment demo --stub-mode success
 🧪 ════════════════════════════════════════════════
    AGENTIC PAYMENT SKILL — INTERACTIVE DEMO
    Stub mode: success
-══════════════════════════════════════════════════
+═══════════════════════════════════════════════════
 
 ─── 1️⃣  x402 USDC payment on Base (web3) ───
   ✅ Success | TX: 0x8f3a1b2c...
